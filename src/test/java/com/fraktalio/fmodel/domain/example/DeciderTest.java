@@ -1,8 +1,8 @@
-package com.fraktalio.fmodel.example;
+package com.fraktalio.fmodel.domain.example;
 
 import com.fraktalio.fmodel.domain.Decider;
 import com.fraktalio.fmodel.domain.Pair;
-import com.fraktalio.fmodel.example.api.*;
+import com.fraktalio.fmodel.domain.example.api.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

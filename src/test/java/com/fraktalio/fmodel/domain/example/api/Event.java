@@ -1,4 +1,4 @@
-package com.fraktalio.fmodel.example.api;
+package com.fraktalio.fmodel.domain.example.api;
 
 public sealed interface Event permits OddEvent, EvenEvent {
 }
