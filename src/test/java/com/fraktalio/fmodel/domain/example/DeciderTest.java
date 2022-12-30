@@ -66,7 +66,7 @@ class DeciderTest {
                 .combine(
                         evenDecider, EvenCommand.class, EvenEvent.class,
                         oddDecider, OddCommand.class, OddEvent.class)
-                .mapOnState(
+                .dimapState(
                         (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
                         (p) -> new NumberState(p.first(), p.second())
                 );
