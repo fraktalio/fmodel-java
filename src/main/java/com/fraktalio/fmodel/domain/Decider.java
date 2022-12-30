@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 /**
  * {@link Decider} is a datatype that represents the main decision-making algorithm.
- * It has three generic parameters {@code C}, {@code S}, `{@code E} , representing the type of the values that Decider may contain or use.
+ * It has three generic parameters {@code C}, {@code S}, {@code E} , representing the type of the values that Decider may contain or use.
  * Decider can be specialized for any type {@code C} or {@code S} or {@code E} because these types does not affect its behavior.
  * Decider behaves the same for {@code C}= {@code Int} or {@code C}={@code OddNumberCommand}.
  *
