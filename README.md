@@ -23,3 +23,7 @@ they constitute the model of the domain.
 ```shell
 ./mvnw clean verify
 ```
+
+## Examples
+
+Check [tests](src/test/java/com/fraktalio/fmodel/domain/example)
