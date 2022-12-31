@@ -61,7 +61,7 @@ class DeciderTest {
                 evenDecider, EvenCommand.class, EvenEvent.class,
                 oddDecider, OddCommand.class, OddEvent.class
         );
-        // Combining two deciders into one, plus mapping inconvenient `Pair` into more domain specific model `NumberState`
+        // Combining two deciders into one, plus mapping inconvenient `Pair` into more domain specific `NumberState`
         Decider<? super Command, NumberState, Event> decider = Decider
                 .combine(
                         evenDecider, EvenCommand.class, EvenEvent.class,

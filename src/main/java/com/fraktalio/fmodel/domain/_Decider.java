@@ -6,8 +6,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static java.util.function.Function.identity;
+
 record _Decider<C, Si, So, Ei, Eo>(
-        BiFunction<C, Si, Stream<Eo>> decide, BiFunction<Si, Ei, So> evolve,
+        BiFunction<C, Si, Stream<Eo>> decide,
+        BiFunction<Si, Ei, So> evolve,
         Supplier<So> initialState
 ) {
 
@@ -44,7 +47,7 @@ record _Decider<C, Si, So, Ei, Eo>(
     }
 
     <Son> _Decider<C, Si, Pair<So, Son>, Ei, Eo> productState(_Decider<? super C, ? super Si, ? extends Son, ? super Ei, ? extends Eo> decider2) {
-        return this.applyState(decider2.dimapState((it) -> it, (b) -> ((a) -> new Pair<>(a, b))));
+        return this.applyState(decider2.dimapState(identity(), (b) -> ((a) -> new Pair<>(a, b))));
     }
 
 
@@ -57,11 +60,11 @@ record _Decider<C, Si, So, Ei, Eo>(
 
         var deciderX = x
                 .<C_SUPER>contraMapCommand((it) -> safeCast(it, clazzC1))
-                .<Pair<Si1, Si2>, So1>dimapState(Pair::first, (it) -> it).<Ei_SUPER, Eo_SUPER>dimapEvent((it) -> safeCast(it, clazzE1), (it) -> it);
+                .<Pair<Si1, Si2>, So1>dimapState(Pair::first, identity()).<Ei_SUPER, Eo_SUPER>dimapEvent((it) -> safeCast(it, clazzE1), (it) -> it);
 
         var deciderY = y
                 .<C_SUPER>contraMapCommand((it) -> safeCast(it, clazzC2))
-                .<Pair<Si1, Si2>, So2>dimapState(Pair::second, (it) -> it).<Ei_SUPER, Eo_SUPER>dimapEvent((it) -> safeCast(it, clazzE2), (it) -> it);
+                .<Pair<Si1, Si2>, So2>dimapState(Pair::second, identity()).<Ei_SUPER, Eo_SUPER>dimapEvent((it) -> safeCast(it, clazzE2), (it) -> it);
 
         return deciderX.productState(deciderY);
     }
