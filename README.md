@@ -1,5 +1,4 @@
-# f(model) Functional and Reactive Domain Modeling with Java
-
+# **f`(`model`)`** - Functional and Reactive Domain Modeling wit Java
 When you’re developing an information system to automate the activities of the business, you are modeling the business. 
 The abstractions that you design, the behaviors that you implement, and the UI interactions that you build all reflect the business — together,
 they constitute the model of the domain.
