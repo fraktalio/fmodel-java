@@ -1,4 +1,4 @@
-package com.fraktalio.fmodel.domain;
+package com.fraktalio.fmodel.domain.view;
 
 import java.util.function.BiFunction;
 import java.util.function.Supplier;

@@ -1,4 +1,4 @@
-package com.fraktalio.fmodel.domain;
+package com.fraktalio.fmodel.domain.saga;
 
 import java.util.function.Function;
 import java.util.stream.Stream;

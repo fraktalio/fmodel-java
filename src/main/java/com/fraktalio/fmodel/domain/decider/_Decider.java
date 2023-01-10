@@ -1,5 +1,7 @@
-package com.fraktalio.fmodel.domain;
+package com.fraktalio.fmodel.domain.decider;
 
+
+import com.fraktalio.fmodel.domain.Pair;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

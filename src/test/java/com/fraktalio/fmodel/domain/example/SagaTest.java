@@ -1,7 +1,7 @@
 package com.fraktalio.fmodel.domain.example;
 
-import com.fraktalio.fmodel.domain.Saga;
 import com.fraktalio.fmodel.domain.example.api.*;
+import com.fraktalio.fmodel.domain.saga.Saga;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

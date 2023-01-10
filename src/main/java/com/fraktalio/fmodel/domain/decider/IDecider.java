@@ -1,4 +1,6 @@
-package com.fraktalio.fmodel.domain;
+package com.fraktalio.fmodel.domain.decider;
+
+import com.fraktalio.fmodel.domain.view.IView;
 
 import java.util.function.BiFunction;
 import java.util.stream.Stream;

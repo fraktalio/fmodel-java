@@ -1,8 +1,8 @@
 package com.fraktalio.fmodel.domain.example;
 
 import com.fraktalio.fmodel.domain.Pair;
-import com.fraktalio.fmodel.domain.View;
 import com.fraktalio.fmodel.domain.example.api.*;
+import com.fraktalio.fmodel.domain.view.View;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
