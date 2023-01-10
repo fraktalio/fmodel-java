@@ -7,7 +7,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public final class MaterializedLockingView<S, E, SV, EI> implements IView<S, E>, IViewStateLockingRepository<S, E, SV, EI> {
-    public MaterializedLockingView(IView<S, E> view, IViewStateLockingRepository<S, E, SV, EI> repository) {
+    public MaterializedLockingView(final IView<S, E> view, final IViewStateLockingRepository<S, E, SV, EI> repository) {
         this.view = view;
         this.repository = repository;
     }

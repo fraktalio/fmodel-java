@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EventSourcedLockingAggregate<C, S, E, V> implements IDecider<C, S, E>, IEventLockingRepository<C, E, V> {
-    public EventSourcedLockingAggregate(IDecider<C, S, E> decider, IEventLockingRepository<C, E, V> repository) {
+    public EventSourcedLockingAggregate(final IDecider<C, S, E> decider, final IEventLockingRepository<C, E, V> repository) {
         this.decider = decider;
         this.repository = repository;
     }

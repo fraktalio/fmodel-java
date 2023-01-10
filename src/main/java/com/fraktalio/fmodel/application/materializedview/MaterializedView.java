@@ -6,7 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public final class MaterializedView<S, E> implements IView<S, E>, IViewStateRepository<S, E> {
-    public MaterializedView(IView<S, E> view, IViewStateRepository<S, E> repository) {
+    public MaterializedView(final IView<S, E> view, final IViewStateRepository<S, E> repository) {
         this.view = view;
         this.repository = repository;
     }

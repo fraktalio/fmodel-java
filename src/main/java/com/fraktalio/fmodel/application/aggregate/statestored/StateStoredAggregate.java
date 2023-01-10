@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class StateStoredAggregate<C, S, E> implements IDecider<C, S, E>, IStateRepository<C, S> {
-    public StateStoredAggregate(IDecider<C, S, E> decider, IStateRepository<C, S> repository) {
+    public StateStoredAggregate(final IDecider<C, S, E> decider, final IStateRepository<C, S> repository) {
         this.decider = decider;
         this.repository = repository;
     }

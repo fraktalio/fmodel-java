@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EventSourcedAggregate<C, S, E> implements IDecider<C, S, E>, IEventRepository<C, E> {
-    public EventSourcedAggregate(IDecider<C, S, E> decider, IEventRepository<C, E> repository) {
+    public EventSourcedAggregate(final IDecider<C, S, E> decider, final IEventRepository<C, E> repository) {
         this.decider = decider;
         this.repository = repository;
     }

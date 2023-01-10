@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public final class StateStoredLockingAggregate<C, S, E, V> implements IDecider<C, S, E>, IStateLockingRepository<C, S, V> {
 
-    public StateStoredLockingAggregate(IDecider<C, S, E> decider, IStateLockingRepository<C, S, V> repository) {
+    public StateStoredLockingAggregate(final IDecider<C, S, E> decider, final IStateLockingRepository<C, S, V> repository) {
         this.decider = decider;
         this.repository = repository;
     }

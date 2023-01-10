@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> implements IDecider<C, S, E>, ISaga<E, C>, IEventLockingRepository<C, E, V> {
-    public EventSourcedLockingOrchestratingAggregate(IDecider<C, S, E> decider, ISaga<E, C> saga, IEventLockingRepository<C, E, V> repository) {
+    public EventSourcedLockingOrchestratingAggregate(final IDecider<C, S, E> decider, final ISaga<E, C> saga, final IEventLockingRepository<C, E, V> repository) {
         this.decider = decider;
         this.saga = saga;
         this.repository = repository;

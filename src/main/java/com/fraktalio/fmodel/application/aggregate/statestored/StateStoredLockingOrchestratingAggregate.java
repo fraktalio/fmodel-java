@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public final class StateStoredLockingOrchestratingAggregate<C, S, E, V> implements IDecider<C, S, E>, ISaga<E, C>, IStateLockingRepository<C, S, V> {
 
-    public StateStoredLockingOrchestratingAggregate(IDecider<C, S, E> decider, ISaga<E, C> saga, IStateLockingRepository<C, S, V> repository) {
+    public StateStoredLockingOrchestratingAggregate(final IDecider<C, S, E> decider, final ISaga<E, C> saga, final IStateLockingRepository<C, S, V> repository) {
         this.decider = decider;
         this.saga = saga;
         this.repository = repository;

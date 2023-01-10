@@ -9,7 +9,7 @@ public final class SagaManager<AR, A> implements ISaga<AR, A>, IActionPublisher<
     private final ISaga<AR, A> saga;
     private final IActionPublisher<A> publisher;
 
-    public SagaManager(ISaga<AR, A> saga, IActionPublisher<A> publisher) {
+    public SagaManager(final ISaga<AR, A> saga, final IActionPublisher<A> publisher) {
         this.saga = saga;
         this.publisher = publisher;
     }

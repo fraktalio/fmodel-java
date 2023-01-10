@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class StateStoredOrchestratingAggregate<C, S, E> implements IDecider<C, S, E>, ISaga<E, C>, IStateRepository<C, S> {
-    public StateStoredOrchestratingAggregate(IDecider<C, S, E> decider, ISaga<E, C> saga, IStateRepository<C, S> repository) {
+    public StateStoredOrchestratingAggregate(final IDecider<C, S, E> decider, final ISaga<E, C> saga, final IStateRepository<C, S> repository) {
         this.decider = decider;
         this.saga = saga;
         this.repository = repository;

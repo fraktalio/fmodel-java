@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EventSourcedOrchestratingAggregate<C, S, E> implements IDecider<C, S, E>, ISaga<E, C>, IEventRepository<C, E> {
-    public EventSourcedOrchestratingAggregate(IDecider<C, S, E> decider, ISaga<E, C> saga, IEventRepository<C, E> repository) {
+    public EventSourcedOrchestratingAggregate(final IDecider<C, S, E> decider, final ISaga<E, C> saga, final IEventRepository<C, E> repository) {
         this.decider = decider;
         this.saga = saga;
         this.repository = repository;
