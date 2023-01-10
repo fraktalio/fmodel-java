@@ -15,8 +15,8 @@ public final class MaterializedView<S, E> implements IView<S, E>, IViewStateRepo
     private final IViewStateRepository<S, E> repository;
 
     private S computeNewState(S state, E event) {
-        var currentState = state != null ? state : initialState().get();
-        return evolve().apply(currentState, event);
+        var currentState = state != null ? state : initialViewState().get();
+        return evolveView().apply(currentState, event);
     }
 
     public S handle(E event) {
@@ -34,12 +34,12 @@ public final class MaterializedView<S, E> implements IView<S, E>, IViewStateRepo
     }
 
     @Override
-    public BiFunction<S, E, S> evolve() {
-        return view.evolve();
+    public BiFunction<S, E, S> evolveView() {
+        return view.evolveView();
     }
 
     @Override
-    public Supplier<S> initialState() {
-        return view.initialState();
+    public Supplier<S> initialViewState() {
+        return view.initialViewState();
     }
 }

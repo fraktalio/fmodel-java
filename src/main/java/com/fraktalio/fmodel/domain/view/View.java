@@ -16,13 +16,13 @@ import java.util.function.Supplier;
  * View can be specialized for any type {@code S} or {@code E} because these types does not affect its behavior.
  * View behaves the same for {@code S}= {@code Int} or {@code S}={@code OddNumber}.
  *
- * @param evolve       A function/lambda that takes input state of type S and input event of type E as parameters, and returns the output/new state S
- * @param initialState A starting point / An initial state of type S
- * @param <S>          State
- * @param <E>          Event
+ * @param evolveView       A function/lambda that takes input state of type S and input event of type E as parameters, and returns the output/new state S
+ * @param initialViewState A starting point / An initial state of type S
+ * @param <S>              State
+ * @param <E>              Event
  */
-public record View<S, E>(BiFunction<S, E, S> evolve,
-                         Supplier<S> initialState
+public record View<S, E>(BiFunction<S, E, S> evolveView,
+                         Supplier<S> initialViewState
 
 ) implements IView<S, E> {
 
@@ -34,7 +34,7 @@ public record View<S, E>(BiFunction<S, E, S> evolve,
      * @return new View of type {@code View<S, En>}
      */
     public <En> View<S, En> contraMapEvent(Function<? super En, ? extends E> f) {
-        return View.of(new _View<>(this.evolve, this.initialState).contraMapEvent(f));
+        return View.of(new _View<>(this.evolveView, this.initialViewState).contraMapEvent(f));
     }
 
 
@@ -47,7 +47,7 @@ public record View<S, E>(BiFunction<S, E, S> evolve,
      * @return new View of type {@code View<Sn, E>}
      */
     public <Sn> View<Sn, E> dimapState(Function<? super Sn, ? extends S> fl, Function<? super S, ? extends Sn> fr) {
-        return View.of(new _View<>(this.evolve, this.initialState).dimapState(fl, fr));
+        return View.of(new _View<>(this.evolveView, this.initialViewState).dimapState(fl, fr));
     }
 
 
@@ -71,7 +71,7 @@ public record View<S, E>(BiFunction<S, E, S> evolve,
             View<S2, ? super E2> y,
             Class<E2> clazzEY
     ) {
-        return View.of(_View.combine(new _View<>(x.evolve, x.initialState), clazzEX, new _View<>(y.evolve, y.initialState), clazzEY));
+        return View.of(_View.combine(new _View<>(x.evolveView, x.initialViewState), clazzEX, new _View<>(y.evolveView, y.initialViewState), clazzEY));
     }
 
     static <S, E> View<S, E> of(_View<S, S, E> view) {

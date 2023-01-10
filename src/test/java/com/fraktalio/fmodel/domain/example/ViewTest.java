@@ -50,9 +50,9 @@ class ViewTest {
                         (p) -> new NumberState(p.first(), p.second())
                 );
 
-        assertEquals(new OddNumberState(1), oddView.evolve().apply(oddState, oddNumberAddedEvent));
-        assertEquals(new EvenNumberState(2), evenView.evolve().apply(evenState, evenNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolve().apply(state, oddNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolve().apply(state, evenNumberAddedEvent));
+        assertEquals(new OddNumberState(1), oddView.evolveView().apply(oddState, oddNumberAddedEvent));
+        assertEquals(new EvenNumberState(2), evenView.evolveView().apply(evenState, evenNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolveView().apply(state, oddNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolveView().apply(state, evenNumberAddedEvent));
     }
 }

@@ -13,10 +13,10 @@ public interface IView<S, E> {
     /**
      * A function/lambda that takes input state of type S and input event of type E as parameters, and returns the output/new state S
      */
-    BiFunction<S, E, S> evolve();
+    BiFunction<S, E, S> evolveView();
 
     /**
      * A starting point / An initial state of type S
      */
-    Supplier<S> initialState();
+    Supplier<S> initialViewState();
 }

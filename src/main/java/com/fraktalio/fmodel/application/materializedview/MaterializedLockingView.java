@@ -16,8 +16,8 @@ public final class MaterializedLockingView<S, E, SV, EI> implements IView<S, E>,
     private final IViewStateLockingRepository<S, E, SV, EI> repository;
 
     private S computeNewState(S state, E event) {
-        var currentState = state != null ? state : initialState().get();
-        return evolve().apply(currentState, event);
+        var currentState = state != null ? state : initialViewState().get();
+        return evolveView().apply(currentState, event);
     }
 
     public S handle(Pair<E, EI> eventAndIdentifier) {
@@ -30,13 +30,13 @@ public final class MaterializedLockingView<S, E, SV, EI> implements IView<S, E>,
     }
 
     @Override
-    public BiFunction<S, E, S> evolve() {
-        return view.evolve();
+    public BiFunction<S, E, S> evolveView() {
+        return view.evolveView();
     }
 
     @Override
-    public Supplier<S> initialState() {
-        return view.initialState();
+    public Supplier<S> initialViewState() {
+        return view.initialViewState();
     }
 
     @Override
