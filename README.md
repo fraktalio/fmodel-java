@@ -7,6 +7,9 @@ they constitute the model of the domain.
 
 **This project is in experimental phase**
 
+Please refer to [kotlin](https://github.com/fraktalio/fmodel) or [typescript](https://github.com/fraktalio/fmodel-ts)
+versions of the libraries that are production ready.
+
 ## Requirements
 
 - Java 19
@@ -20,9 +23,9 @@ they constitute the model of the domain.
 
 `fmodel-java` is using Amber **productivity-oriented** features to accelerate development of applications:
 
-- exhaustive pattern matching for Switch expresions
 - records
 - sealed hierarchy
+- exhaustive pattern matching for Switch expressions
 
 ## Driven by Maven
 
