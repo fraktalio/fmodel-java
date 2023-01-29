@@ -5,27 +5,21 @@ The abstractions that you design, the behaviors that you implement, and the UI i
 the business — together,
 they constitute the model of the domain.
 
-**This project is in experimental phase**
+**This project is in experimental phase**, and it is not published to Maven Central.
 
-Please refer to [kotlin](https://github.com/fraktalio/fmodel) or [typescript](https://github.com/fraktalio/fmodel-ts)
-versions of the libraries that are production ready.
-
-## Requirements
-
-- Java 19
-
-## Project Amber
-
-(https://openjdk.org/projects/amber/)[https://openjdk.org/projects/amber/]
-
-> The goal of Project Amber is to explore and incubate smaller, productivity-oriented Java language features that have
-> been accepted as candidate JEPs in the OpenJDK JEP Process. This Project is sponsored by the Compiler Group.
-
-`fmodel-java` is using Amber **productivity-oriented** features to accelerate development of applications:
+It is using [Amber **productivity-oriented** features](https://openjdk.org/projects/amber/) to accelerate development of
+applications:
 
 - records
 - sealed hierarchy
 - exhaustive pattern matching for Switch expressions
+
+Please refer to [kotlin](https://github.com/fraktalio/fmodel) or [typescript](https://github.com/fraktalio/fmodel-ts)
+versions (production ready) of the libraries.
+
+## Requirements
+
+- Java 19
 
 ## Driven by Maven
 
@@ -36,3 +30,6 @@ versions of the libraries that are production ready.
 ## Examples
 
 Check [tests](src/test/java/com/fraktalio/fmodel/domain/example)
+
+---
+Created with :heart: by [Fraktalio](https://fraktalio.com/)
