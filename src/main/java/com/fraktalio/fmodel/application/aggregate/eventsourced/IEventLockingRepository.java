@@ -29,7 +29,7 @@ public interface IEventLockingRepository<C, E, V> {
      * @param versionProvider
      * @return stream of already saved Events with its Sequence/Version
      */
-    Stream<Pair<E, V>> save(Stream<E> events, Function<E, Pair<E, V>> versionProvider);
+    Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider);
 
     /**
      * Save Events
@@ -38,11 +38,11 @@ public interface IEventLockingRepository<C, E, V> {
      * @param version
      * @return stream of already saved Events with its Sequence/Version
      */
-    Stream<Pair<E, V>> save(Stream<E> events, Pair<E, V> version);
+    Stream<Pair<E, V>> save(Stream<E> events, V version);
 
     /**
      * A function - version provider
      */
-    Function<E, Pair<E, V>> versionProvider();
+    Function<E, V> versionProvider();
 
 }

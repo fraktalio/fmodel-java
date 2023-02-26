@@ -47,17 +47,17 @@ public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> impleme
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, Pair<E, V>> versionProvider) {
+    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider) {
         return repository.save(events, versionProvider);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Pair<E, V> version) {
+    public Stream<Pair<E, V>> save(Stream<E> events, V version) {
         return repository.save(events, version);
     }
 
     @Override
-    public Function<E, Pair<E, V>> versionProvider() {
+    public Function<E, V> versionProvider() {
         return repository.versionProvider();
     }
 

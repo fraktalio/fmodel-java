@@ -39,23 +39,23 @@ public final class EventSourcedLockingAggregate<C, S, E, V> implements IDecider<
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, Pair<E, V>> versionProvider) {
+    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider) {
         return repository.save(events, versionProvider);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Pair<E, V> version) {
+    public Stream<Pair<E, V>> save(Stream<E> events, V version) {
         return repository.save(events, version);
     }
 
     @Override
-    public Function<E, Pair<E, V>> versionProvider() {
+    public Function<E, V> versionProvider() {
         return repository.versionProvider();
     }
 
     public Stream<Pair<E, V>> handle(C command) {
         var events = fetchEvents(command).toList();
-        return save(computeNewEvents(events.stream().map(Pair::first), command), events.get(events.size() - 1));
+        return save(computeNewEvents(events.stream().map(Pair::first), command), events.stream().map(Pair::second).toList().get(events.size() - 1));
     }
 
     private Stream<E> computeNewEvents(Stream<E> oldEvents, C command) {
