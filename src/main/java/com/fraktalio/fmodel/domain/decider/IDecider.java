@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 
 /**
  * An Interface for the {@link Decider}
+ * <br><br>
+ * Represents the main decision-making algorithm of the system, responsible for translating the commands (intent) into new events/state (facts).
  *
  * @param <C> Command
  * @param <S> State
@@ -13,7 +15,7 @@ import java.util.stream.Stream;
  */
 public interface IDecider<C, S, E> {
     /**
-     * A function/lambda that takes command of type C and input state of type S as parameters, and returns/emits the flow of output events Stream<[E]>
+     * A function/lambda that takes command of type C and input state of type S as parameters, and returns/emits the flow of output events {@code Stream<E>}
      */
     BiFunction<C, S, Stream<E>> decide();
 

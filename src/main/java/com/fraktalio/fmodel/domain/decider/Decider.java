@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * Decider can be specialized for any type {@code C} or {@code S} or {@code E} because these types does not affect its behavior.
  * Decider behaves the same for {@code C}= {@code Int} or {@code C}={@code OddNumberCommand}.
  *
- * @param decide       A function/lambda that takes command of type C and input state of type S as parameters, and returns/emits the flow of output events Stream<[E]>
+ * @param decide       A function/lambda that takes command of type C and input state of type S as parameters, and returns/emits the flow of output events {@code Stream<E>}
  * @param evolve       A function/lambda that takes input state of type S and input event of type E as parameters, and returns the output/new state S
  * @param initialState A starting point / An initial state of type S
  * @param <C>          Command

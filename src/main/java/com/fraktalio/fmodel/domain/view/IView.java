@@ -5,6 +5,8 @@ import java.util.function.Supplier;
 
 /**
  * An Interface for the {@link View}
+ * <br><br>
+ * Represents the event handling algorithm, responsible for translating the events into denormalized state, which is more adequate for querying.
  *
  * @param <S> State
  * @param <E> Event
