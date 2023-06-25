@@ -6,6 +6,19 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+/**
+ * {@code StateStoredAggregate} implements {@link IDecider} and {@link IStateRepository} interfaces,
+ * clearly communicating that it is composed out of these two behaviours.
+ * <br /><br />
+ * State stored aggregate is using/delegating a `decider` to handle commands and store/produce new state.
+ * In order to handle the command, aggregate needs to fetch the current state via `IStateRepository.fetchState` function first, and then delegate the command to the `decider` which can compute new state as a result.
+ * New state is then stored via `IStateRepository.save` method.
+ *
+ * @param <C> command type(s) that this aggregate can handle
+ * @param <S> aggregate state type
+ * @param <E> event type(s) that this aggregate can publish/store
+ * @author Иван Дугалић / Ivan Dugalic / @idugalic
+ */
 public final class StateStoredAggregate<C, S, E> implements IDecider<C, S, E>, IStateRepository<C, S> {
     public StateStoredAggregate(final IDecider<C, S, E> decider, final IStateRepository<C, S> repository) {
         this.decider = decider;
@@ -40,6 +53,12 @@ public final class StateStoredAggregate<C, S, E> implements IDecider<C, S, E>, I
         return decider.initialState();
     }
 
+    /**
+     * Handle the command and store/produce new state
+     *
+     * @param command the command to handle
+     * @return the newly stored state
+     */
     public S handle(C command) {
         return save(computeNewState(fetchState(command), command));
     }

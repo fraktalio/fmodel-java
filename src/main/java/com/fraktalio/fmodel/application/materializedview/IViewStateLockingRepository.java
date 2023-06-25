@@ -4,6 +4,11 @@ import com.fraktalio.fmodel.domain.Pair;
 
 /**
  * Materialized View State Locking repository
+ * <br /><br />
+ * View state locking repository enables `optimistic locking` mechanism more explicitly.
+ * If you fetch state from a storage, the application records the `version` number of that state.
+ * You can update the state, but only if the `version` number in the storage has not changed.
+ * If there is a `version` mismatch, it means that someone else has updated the state before you did.
  *
  * @param <S>  state
  * @param <E>  event
@@ -12,15 +17,15 @@ import com.fraktalio.fmodel.domain.Pair;
  */
 public interface IViewStateLockingRepository<S, E, SV, EI> {
     /**
-     * @param event
+     * @param event event
      * @return pair of State and State Version
      */
     Pair<S, SV> fetchState(E event);
 
     /**
-     * @param state
-     * @param eventIdentifier
-     * @param currentStateVersion
+     * @param state               state
+     * @param eventIdentifier     event identifier
+     * @param currentStateVersion current state version
      * @return newly stored state
      */
     S save(S state, EI eventIdentifier, SV currentStateVersion);

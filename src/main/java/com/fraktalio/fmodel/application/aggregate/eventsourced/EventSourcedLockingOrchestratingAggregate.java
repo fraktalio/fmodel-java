@@ -10,6 +10,26 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+/**
+ * {@code EventSourcedLockingOrchestratingAggregate} implements {@link IDecider}, {@link ISaga} and {@link IEventLockingRepository} interfaces,
+ * clearly communicating that it is composed out of these three behaviours.
+ * <br /><br />
+ * Event sourcing locking orchestrating aggregate is using/delegating a `decider` to handle commands and produce events.
+ * In order to handle the command, aggregate needs to fetch the current state (represented as a list of events) via `IEventLockingRepository.fetchEvents` function, and then delegate the command to the `decider` which can produce new event(s) as a result.
+ * If the `decider` is combined out of many deciders via `combine` function, an optional `saga` of type {@code ISaga} could be used to react on new events and send new commands to the 'decider` recursively, in single transaction.
+ * Produced events are then stored via `IEventLockingRepository.save` method.
+ * <br /><br />
+ * Locking and Orchestrating Event sourcing aggregate enables `optimistic locking` mechanism more explicitly.
+ * If you fetch events from a storage, the application records the `version` number of that event stream.
+ * You can append new events, but only if the `version` number in the storage has not changed.
+ * If there is a `version` mismatch, it means that someone else has added the event(s) before you did.
+ *
+ * @param <C> command type(s) that this aggregate can handle
+ * @param <S> aggregate state type
+ * @param <E> event type(s) that this aggregate can publish/store
+ * @param <V> version type
+ * @author Иван Дугалић / Ivan Dugalic / @idugalic
+ */
 public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> implements IDecider<C, S, E>, ISaga<E, C>, IEventLockingRepository<C, E, V> {
     public EventSourcedLockingOrchestratingAggregate(final IDecider<C, S, E> decider, final ISaga<E, C> saga, final IEventLockingRepository<C, E, V> repository) {
         this.decider = decider;
@@ -61,6 +81,12 @@ public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> impleme
         return repository.versionProvider();
     }
 
+    /**
+     * Handle the command and store/produce new events
+     *
+     * @param command command to be handled
+     * @return new events being stored
+     */
     public Stream<Pair<E, V>> handle(C command) {
         return save(computeNewEvents(fetchEvents(command).map(Pair::first), command), versionProvider());
     }

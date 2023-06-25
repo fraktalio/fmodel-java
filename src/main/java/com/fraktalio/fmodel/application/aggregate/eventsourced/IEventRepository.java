@@ -13,7 +13,7 @@ public interface IEventRepository<C, E> {
     /**
      * Fetch Events by command
      *
-     * @param command
+     * @param command command
      * @return stream of Events
      */
     Stream<E> fetchEvents(C command);
@@ -21,7 +21,7 @@ public interface IEventRepository<C, E> {
     /**
      * Save Events
      *
-     * @param events
+     * @param events events
      * @return stream of already saved events
      */
     Stream<E> save(Stream<E> events);

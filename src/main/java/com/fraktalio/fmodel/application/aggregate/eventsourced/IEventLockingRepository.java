@@ -6,7 +6,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Event locking repository interface
+ * Event locking repository interface.
+ * <br /><br />
+ * Locking event repository enables `optimistic locking` mechanism more explicitly.
+ * If you fetch events from a storage, the application records the `version` number of that event stream.
+ * You can append/save new events, but only if the `version` number in the storage has not changed.
+ * If there is a `version` mismatch, it means that someone else has added the event(s) before you did.
  *
  * @param <C> command
  * @param <E> event
@@ -17,7 +22,7 @@ public interface IEventLockingRepository<C, E, V> {
     /**
      * Fetch Events by Command
      *
-     * @param command
+     * @param command command
      * @return stream of Event and Sequence/Version
      */
     Stream<Pair<E, V>> fetchEvents(C command);
@@ -25,8 +30,8 @@ public interface IEventLockingRepository<C, E, V> {
     /**
      * Save Events
      *
-     * @param events
-     * @param versionProvider
+     * @param events          events
+     * @param versionProvider version provider function
      * @return stream of already saved Events with its Sequence/Version
      */
     Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider);
@@ -34,8 +39,8 @@ public interface IEventLockingRepository<C, E, V> {
     /**
      * Save Events
      *
-     * @param events
-     * @param version
+     * @param events  events
+     * @param version version
      * @return stream of already saved Events with its Sequence/Version
      */
     Stream<Pair<E, V>> save(Stream<E> events, V version);

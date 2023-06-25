@@ -9,13 +9,13 @@ package com.fraktalio.fmodel.application.aggregate.statestored;
  */
 public interface IStateRepository<C, S> {
     /**
-     * @param command
+     * @param command command
      * @return the State
      */
     S fetchState(C command);
 
     /**
-     * @param newState
+     * @param newState new state
      * @return newly stored State
      */
     S save(S newState);

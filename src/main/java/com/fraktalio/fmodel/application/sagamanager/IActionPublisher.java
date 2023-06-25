@@ -9,7 +9,7 @@ import java.util.stream.Stream;
  */
 public interface IActionPublisher<A> {
     /**
-     * @param actions
+     * @param actions actions
      * @return stream of Actions being published
      */
     Stream<A> publish(Stream<A> actions);
