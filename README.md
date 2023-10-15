@@ -38,6 +38,7 @@ within the Application module/package to enable high-throughput lightweight conc
 the Java platform.
 
 Please refer to [kotlin](https://github.com/fraktalio/fmodel) or [typescript](https://github.com/fraktalio/fmodel-ts)
+or [rust](https://github.com/fraktalio/fmodel-rust)
 production ready versions of the libraries.
 
 ## Decider
@@ -300,7 +301,7 @@ class SagaTest {
 
 ## Requirements
 
-- Java 19
+- Java 21
 
 ## Driven by Maven
 
