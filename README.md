@@ -313,6 +313,19 @@ class SagaTest {
 
 Check [tests](src/test/java/com/fraktalio/fmodel/domain/example)
 
+## FModel in other languages
+
+FModel is ported to other programming languages. This section contains links to the documentation.
+
+- [Kotlin](https://fraktalio.com/fmodel/)
+- [TypeScript](https://github.com/fraktalio/fmodel-rust/)
+- [Rust](https://github.com/fraktalio/fmodel-ts/)
+
+## References and further reading
+
+- [Domain Modeling](https://fraktalio.com/domain-modeling/)
+- [The Blog](https://fraktalio.com/blog/)
+
 ## Credits
 
 Special credits to `Jérémie Chassaing` for sharing his [research](https://www.youtube.com/watch?v=kgYGMVDHQHs)
