@@ -2,9 +2,10 @@ package com.fraktalio.fmodel.application.aggregate.statestored;
 
 import com.fraktalio.fmodel.domain.decider.IDecider;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * {@code StateStoredAggregate} implements {@link IDecider} and {@link IStateRepository} interfaces,
@@ -39,7 +40,7 @@ public final class StateStoredAggregate<C, S, E> implements IDecider<C, S, E>, I
     }
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -63,9 +64,21 @@ public final class StateStoredAggregate<C, S, E> implements IDecider<C, S, E>, I
         return save(computeNewState(fetchState(command), command));
     }
 
+    /**
+     * Handle the command and store/produce new state - async variant
+     *
+     * @param command the command to handle
+     * @return the newly stored state
+     */
+    public CompletableFuture<S> handleAsync(C command) {
+        return fetchStateAsync(command)
+                .thenApply(state -> computeNewState(state, command))
+                .thenCompose(this::saveAsync);
+    }
+
     private S computeNewState(S state, C command) {
         var currentState = state != null ? state : initialState().get();
         var events = decide().apply(command, currentState);
-        return events.sequential().reduce(currentState, (s, e) -> evolve().apply(s, e), (s, s2) -> s);
+        return events.stream().reduce(currentState, (s, e) -> evolve().apply(s, e), (s, s2) -> s);
     }
 }

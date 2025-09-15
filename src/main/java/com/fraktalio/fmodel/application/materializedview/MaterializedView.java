@@ -2,6 +2,7 @@ package com.fraktalio.fmodel.application.materializedview;
 
 import com.fraktalio.fmodel.domain.view.IView;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -39,6 +40,18 @@ public final class MaterializedView<S, E> implements IView<S, E>, IViewStateRepo
      */
     public S handle(E event) {
         return save(computeNewState(fetchState(event), event));
+    }
+
+    /**
+     * Handle the event and store/produce new state - async variant
+     *
+     * @param event event to handle
+     * @return newly stored state
+     */
+    public CompletableFuture<S> handleAsync(E event) {
+        return fetchStateAsync(event)
+                .thenApply(state -> computeNewState(state, event))
+                .thenCompose(this::saveAsync);
     }
 
     @Override

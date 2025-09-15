@@ -1,6 +1,7 @@
 package com.fraktalio.fmodel.application.aggregate.eventsourced;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Event repository interface
@@ -14,15 +15,26 @@ public interface IEventRepository<C, E> {
      * Fetch Events by command
      *
      * @param command command
-     * @return stream of Events
+     * @return list of Events
      */
-    Stream<E> fetchEvents(C command);
+    List<E> fetchEvents(C command);
 
     /**
      * Save Events
      *
      * @param events events
-     * @return stream of already saved events
+     * @return list of already saved events
      */
-    Stream<E> save(Stream<E> events);
+    List<E> save(List<E> events);
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+    default CompletableFuture<List<E>> fetchEventsAsync(C command) {
+        return CompletableFuture.supplyAsync(() -> fetchEvents(command));
+    }
+
+    default CompletableFuture<List<E>> saveAsync(List<E> events) {
+        return CompletableFuture.supplyAsync(() -> save(events));
+    }
 }

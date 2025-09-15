@@ -2,8 +2,9 @@ package com.fraktalio.fmodel.application.sagamanager;
 
 import com.fraktalio.fmodel.domain.saga.ISaga;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Saga manager - Stateless process orchestrator.
@@ -32,17 +33,30 @@ public final class SagaManager<AR, A> implements ISaga<AR, A>, IActionPublisher<
      * @param actionResult the action result to handle
      * @return the newly published actions
      */
-    public Stream<A> handle(AR actionResult) {
+    public List<A> handle(AR actionResult) {
         return publish(react().apply(actionResult));
     }
 
+    /**
+     * Handle the action result and publish new actions - async variant
+     *
+     * @param actionResult the action result to handle
+     * @return the newly published actions
+     */
+    public CompletableFuture<List<A>> handleAsync(AR actionResult) {
+        return CompletableFuture
+                .supplyAsync(() -> react().apply(actionResult))   // compute actions from actionResult
+                .thenCompose(this::publishAsync);         // publish them asynchronously
+    }
+
     @Override
-    public Function<AR, Stream<A>> react() {
+    public Function<AR, List<A>> react() {
         return saga.react();
     }
 
     @Override
-    public Stream<A> publish(Stream<A> actions) {
+    public List<A> publish(List<A> actions) {
         return publisher.publish(actions);
     }
+
 }

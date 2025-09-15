@@ -2,8 +2,9 @@ package com.fraktalio.fmodel.application.aggregate.eventsourced;
 
 import com.fraktalio.fmodel.domain.Pair;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Event locking repository interface.
@@ -23,31 +24,51 @@ public interface IEventLockingRepository<C, E, V> {
      * Fetch Events by Command
      *
      * @param command command
-     * @return stream of Event and Sequence/Version
+     * @return list of Event and Sequence/Version
      */
-    Stream<Pair<E, V>> fetchEvents(C command);
+    List<Pair<E, V>> fetchEvents(C command);
 
     /**
      * Save Events
      *
      * @param events          events
      * @param versionProvider version provider function
-     * @return stream of already saved Events with its Sequence/Version
+     * @return list of already saved Events with its Sequence/Version
      */
-    Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider);
+    List<Pair<E, V>> save(List<E> events, Function<E, V> versionProvider);
 
     /**
      * Save Events
      *
      * @param events  events
      * @param version version
-     * @return stream of already saved Events with its Sequence/Version
+     * @return list of already saved Events with its Sequence/Version
      */
-    Stream<Pair<E, V>> save(Stream<E> events, V version);
+    List<Pair<E, V>> save(List<E> events, V version);
 
     /**
      * A function - version provider
      */
     Function<E, V> versionProvider();
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+
+    default CompletableFuture<List<Pair<E, V>>> fetchEventsAsync(C command) {
+        return CompletableFuture.supplyAsync(() -> fetchEvents(command));
+    }
+
+    default CompletableFuture<List<Pair<E, V>>> saveAsync(List<E> events, Function<E, V> versionProvider) {
+        return CompletableFuture.supplyAsync(() -> save(events, versionProvider));
+    }
+
+    default CompletableFuture<List<Pair<E, V>>> saveAsync(List<E> events, V version) {
+        return CompletableFuture.supplyAsync(() -> save(events, version));
+    }
+
+    default CompletableFuture<Function<E, V>> versionProviderAsync() {
+        return CompletableFuture.supplyAsync(this::versionProvider);
+    }
 
 }

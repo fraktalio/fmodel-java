@@ -3,15 +3,17 @@ package com.fraktalio.fmodel.domain.decider;
 
 import com.fraktalio.fmodel.domain.Pair;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 
 record _Decider<C, Si, So, Ei, Eo>(
-        BiFunction<C, Si, Stream<Eo>> decide,
+        BiFunction<C, Si, List<Eo>> decide,
         BiFunction<Si, Ei, So> evolve,
         Supplier<So> initialState
 ) {
@@ -26,7 +28,7 @@ record _Decider<C, Si, So, Ei, Eo>(
 
     <Ein, Eon> _Decider<C, Si, So, Ein, Eon> dimapEvent(Function<? super Ein, ? extends Ei> fl, Function<? super Eo, ? extends Eon> fr) {
         return new _Decider<>(
-                (c, si) -> decide.apply(c, si).map(fr),
+                (c, si) -> decide.apply(c, si).stream().map(fr).collect(Collectors.toUnmodifiableList()),
                 (si, ein) -> evolve.apply(si, fl.apply(ein)),
                 initialState
         );
@@ -42,7 +44,7 @@ record _Decider<C, Si, So, Ei, Eo>(
 
     <Son> _Decider<C, Si, Son, Ei, Eo> applyState(_Decider<? super C, ? super Si, ? extends Function<? super So, ? extends Son>, ? super Ei, ? extends Eo> decider2) {
         return new _Decider<>(
-                (c, si) -> Stream.concat(decide.apply(c, si), decider2.decide.apply(c, si)),
+                (c, si) -> Stream.concat(decide.apply(c, si).stream(), decider2.decide.apply(c, si).stream()).toList(),
                 (si, ei) -> decider2.evolve.apply(si, ei).apply(evolve.apply(si, ei)),
                 () -> decider2.initialState.get().apply(initialState.get())
         );

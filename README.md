@@ -55,7 +55,7 @@ behavior. `Decider` behaves the same for `C`=`Int` or `C`=`YourCustomType`, for 
 - `E` - Event
 
 ```java
-public record Decider<C, S, E>(BiFunction<C, S, Stream<E>> decide,
+public record Decider<C, S, E>(BiFunction<C, S, List<E>> decide,
                                BiFunction<S, E, S> evolve,
                                Supplier<S> initialState
 
@@ -74,68 +74,72 @@ interface [`IDecider`](src/main/java/com/fraktalio/fmodel/domain/decider/IDecide
 
 ```java
 class DeciderTest {
-  @Test
-  void deciderTest() {
-    var addOddNumberCommand = new AddOddNumberCommand(1);
-    var oddNumberAddedEvent = new OddNumberAddedEvent(1);
-    var addEvenNumberCommand = new AddEvenNumberCommand(2);
-    var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
-    var oddState = new OddNumberState(0);
-    var evenState = new EvenNumberState(0);
-    var state = new NumberState(evenState, oddState);
+    @Test
+    void deciderTest() {
+        var addOddNumberCommand = new AddOddNumberCommand(1);
+        var oddNumberAddedEvent = new OddNumberAddedEvent(1);
 
-    Decider<? super OddCommand, OddNumberState, OddEvent> oddDecider = new Decider<>(
-            (c, s) -> switch (c) {
-              case AddOddNumberCommand cmd -> Stream.of(new OddNumberAddedEvent(s.value() + cmd.value()));
-              case MultiplyOddNumberCommand cmd -> Stream.of(new OddNumberMultipliedEvent(s.value() * cmd.value()));
-              case null -> Stream.empty();
-            },
-            (s, e) -> switch (e) {
-              case OddNumberAddedEvent evt -> new OddNumberState(evt.value());
-              case OddNumberMultipliedEvent evt -> new OddNumberState(evt.value());
-              case null -> s;
-            },
-            () -> oddState
-    );
+        var addEvenNumberCommand = new AddEvenNumberCommand(2);
+        var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
 
-    Decider<? super EvenCommand, EvenNumberState, EvenEvent> evenDecider = new Decider<>(
-            (c, s) -> switch (c) {
-              case AddEvenNumberCommand cmd -> Stream.of(new EvenNumberAddedEvent(s.value() + cmd.value()));
-              case MultiplyEvenNumberCommand cmd -> Stream.of(new EvenNumberMultipliedEvent(s.value() * cmd.value()));
-              case null -> Stream.empty();
-            },
-            (s, e) -> switch (e) {
-              case EvenNumberAddedEvent evt -> new EvenNumberState(evt.value());
-              case EvenNumberMultipliedEvent evt -> new EvenNumberState(evt.value());
-              case null -> s;
-            },
-            () -> evenState
-    );
+        var oddState = new OddNumberState(0);
+        var evenState = new EvenNumberState(0);
 
-    // Combining two deciders into one
-    Decider<Command, Pair<EvenNumberState, OddNumberState>, Event> _decider = Decider.combine(
-            evenDecider, EvenCommand.class, EvenEvent.class,
-            oddDecider, OddCommand.class, OddEvent.class
-    );
-    // Combining two deciders into one, plus mapping inconvenient `Pair` into a domain specific `NumberState`
-    Decider<Command, NumberState, Event> decider = Decider
-            .combine(
-                    evenDecider, EvenCommand.class, EvenEvent.class,
-                    oddDecider, OddCommand.class, OddEvent.class)
-            .dimapState(
-                    (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
-                    (p) -> new NumberState(p.first(), p.second())
-            );
+        var state = new NumberState(evenState, oddState);
 
-    assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState).toList());
-    assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState).toList());
-    assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state).toList());
+        Decider<? super OddCommand, OddNumberState, OddEvent> oddDecider = new Decider<>(
+                (c, s) -> switch (c) {
+                    case AddOddNumberCommand cmd -> List.of(new OddNumberAddedEvent(s.value() + cmd.value()));
+                    case MultiplyOddNumberCommand cmd -> List.of(new OddNumberMultipliedEvent(s.value() * cmd.value()));
+                    case null -> List.of();
+                },
+                (s, e) -> switch (e) {
+                    case OddNumberAddedEvent evt -> new OddNumberState(evt.value());
+                    case OddNumberMultipliedEvent evt -> new OddNumberState(evt.value());
+                    case null -> s;
+                },
+                () -> oddState
+        );
 
-    assertEquals(new OddNumberState(1), oddDecider.evolve().apply(oddState, oddNumberAddedEvent));
-    assertEquals(new EvenNumberState(2), evenDecider.evolve().apply(evenState, evenNumberAddedEvent));
-    assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolve().apply(state, oddNumberAddedEvent));
-    assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolve().apply(state, evenNumberAddedEvent));
-  }
+        Decider<? super EvenCommand, EvenNumberState, EvenEvent> evenDecider = new Decider<>(
+                (c, s) -> switch (c) {
+                    case AddEvenNumberCommand cmd -> List.of(new EvenNumberAddedEvent(s.value() + cmd.value()));
+                    case MultiplyEvenNumberCommand cmd ->
+                            List.of(new EvenNumberMultipliedEvent(s.value() * cmd.value()));
+                    case null -> List.of();
+                },
+                (s, e) -> switch (e) {
+                    case EvenNumberAddedEvent evt -> new EvenNumberState(evt.value());
+                    case EvenNumberMultipliedEvent evt -> new EvenNumberState(evt.value());
+                    case null -> s;
+                },
+                () -> evenState
+        );
+
+        // Combining two deciders into one
+        Decider<Command, Pair<EvenNumberState, OddNumberState>, Event> _decider = Decider.combine(
+                evenDecider, EvenCommand.class, EvenEvent.class,
+                oddDecider, OddCommand.class, OddEvent.class
+        );
+        // Combining two deciders into one, plus mapping inconvenient `Pair` into a domain specific `NumberState`
+        Decider<Command, NumberState, Event> decider = Decider
+                .combine(
+                        evenDecider, EvenCommand.class, EvenEvent.class,
+                        oddDecider, OddCommand.class, OddEvent.class)
+                .dimapState(
+                        (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
+                        (p) -> new NumberState(p.first(), p.second())
+                );
+
+        assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState));
+        assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState));
+        assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state));
+
+        assertEquals(new OddNumberState(1), oddDecider.evolve().apply(oddState, oddNumberAddedEvent));
+        assertEquals(new EvenNumberState(2), evenDecider.evolve().apply(evenState, evenNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolve().apply(state, oddNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolve().apply(state, evenNumberAddedEvent));
+    }
 }
 
 ```
@@ -175,50 +179,50 @@ communicate the contract.
 
 ```java
 class ViewTest {
-  @Test
-  void viewTest() {
-    var oddNumberAddedEvent = new OddNumberAddedEvent(1);
-    var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
-    var oddState = new OddNumberState(0);
-    var evenState = new EvenNumberState(0);
-    var state = new NumberState(evenState, oddState);
+    @Test
+    void viewTest() {
+        var oddNumberAddedEvent = new OddNumberAddedEvent(1);
+        var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
+        var oddState = new OddNumberState(0);
+        var evenState = new EvenNumberState(0);
+        var state = new NumberState(evenState, oddState);
 
-    View<OddNumberState, ? super OddEvent> oddView = new View<>(
-            (s, e) -> switch (e) {
-              case OddNumberAddedEvent evt -> new OddNumberState(evt.value());
-              case OddNumberMultipliedEvent evt -> new OddNumberState(evt.value());
-              case null -> s;
-            },
-            () -> oddState
-    );
+        View<OddNumberState, ? super OddEvent> oddView = new View<>(
+                (s, e) -> switch (e) {
+                    case OddNumberAddedEvent evt -> new OddNumberState(evt.value());
+                    case OddNumberMultipliedEvent evt -> new OddNumberState(evt.value());
+                    case null -> s;
+                },
+                () -> oddState
+        );
 
-    View<EvenNumberState, ? super EvenEvent> evenView = new View<>(
-            (s, e) -> switch (e) {
-              case EvenNumberAddedEvent evt -> new EvenNumberState(evt.value());
-              case EvenNumberMultipliedEvent evt -> new EvenNumberState(evt.value());
-              case null -> s;
-            },
-            () -> evenState
-    );
+        View<EvenNumberState, ? super EvenEvent> evenView = new View<>(
+                (s, e) -> switch (e) {
+                    case EvenNumberAddedEvent evt -> new EvenNumberState(evt.value());
+                    case EvenNumberMultipliedEvent evt -> new EvenNumberState(evt.value());
+                    case null -> s;
+                },
+                () -> evenState
+        );
 
-    // Combining two views into one
-    View<Pair<EvenNumberState, OddNumberState>, ? super Event> _decider = View.combine(
-            evenView, EvenEvent.class,
-            oddView, OddEvent.class
-    );
-    // Combining two views into one, plus mapping inconvenient `Pair` into more domain specific `NumberState`
-    View<NumberState, ? super Event> decider = View
-            .combine(evenView, EvenEvent.class, oddView, OddEvent.class)
-            .dimapState(
-                    (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
-                    (p) -> new NumberState(p.first(), p.second())
-            );
+        // Combining two views into one
+        View<Pair<EvenNumberState, OddNumberState>, ? super Event> _decider = View.combine(
+                evenView, EvenEvent.class,
+                oddView, OddEvent.class
+        );
+        // Combining two views into one, plus mapping inconvenient `Pair` into more domain specific `NumberState`
+        View<NumberState, ? super Event> decider = View
+                .combine(evenView, EvenEvent.class, oddView, OddEvent.class)
+                .dimapState(
+                        (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
+                        (p) -> new NumberState(p.first(), p.second())
+                );
 
-    assertEquals(new OddNumberState(1), oddView.evolveView().apply(oddState, oddNumberAddedEvent));
-    assertEquals(new EvenNumberState(2), evenView.evolveView().apply(evenState, evenNumberAddedEvent));
-    assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolveView().apply(state, oddNumberAddedEvent));
-    assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolveView().apply(state, evenNumberAddedEvent));
-  }
+        assertEquals(new OddNumberState(1), oddView.evolveView().apply(oddState, oddNumberAddedEvent));
+        assertEquals(new EvenNumberState(2), evenView.evolveView().apply(evenState, evenNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolveView().apply(state, oddNumberAddedEvent));
+        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolveView().apply(state, evenNumberAddedEvent));
+    }
 }
 
 ```
@@ -258,41 +262,41 @@ communicate the contract.
 ```java
 
 class SagaTest {
-  @Test
-  void sagaTest() {
-    var oddNumberAddedEvent = new OddNumberAddedEvent(1);
-    var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
-    var addOddNumberCommand = new AddOddNumberCommand(3);
-    var addEvenNumberCommand = new AddEvenNumberCommand(2);
+    @Test
+    void sagaTest() {
+        var oddNumberAddedEvent = new OddNumberAddedEvent(1);
+        var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
+        var addOddNumberCommand = new AddOddNumberCommand(3);
+        var addEvenNumberCommand = new AddEvenNumberCommand(2);
 
-    Saga<? super OddEvent, ? extends EvenCommand> oddSaga = new Saga<>(
-            (ar) -> switch (ar) {
-              case OddNumberAddedEvent evt -> Stream.of(new AddEvenNumberCommand(evt.value() + 1));
-              case OddNumberMultipliedEvent evt -> Stream.of(new MultiplyEvenNumberCommand(evt.value() + 1));
-              case null -> Stream.empty();
-            }
-    );
+        Saga<? super OddEvent, ? extends EvenCommand> oddSaga = new Saga<>(
+                (ar) -> switch (ar) {
+                    case OddNumberAddedEvent evt -> Stream.of(new AddEvenNumberCommand(evt.value() + 1));
+                    case OddNumberMultipliedEvent evt -> Stream.of(new MultiplyEvenNumberCommand(evt.value() + 1));
+                    case null -> Stream.empty();
+                }
+        );
 
-    Saga<? super EvenEvent, ? extends OddCommand> evenSaga = new Saga<>(
-            (ar) -> switch (ar) {
-              case EvenNumberAddedEvent evt -> Stream.of(new AddOddNumberCommand(evt.value() + 1));
-              case EvenNumberMultipliedEvent evt -> Stream.of(new MultiplyOddNumberCommand(evt.value() + 1));
-              case null -> Stream.empty();
-            }
-    );
+        Saga<? super EvenEvent, ? extends OddCommand> evenSaga = new Saga<>(
+                (ar) -> switch (ar) {
+                    case EvenNumberAddedEvent evt -> Stream.of(new AddOddNumberCommand(evt.value() + 1));
+                    case EvenNumberMultipliedEvent evt -> Stream.of(new MultiplyOddNumberCommand(evt.value() + 1));
+                    case null -> Stream.empty();
+                }
+        );
 
-    // Combining two sagas into one saga
-    Saga<? super Event, ? extends Command> saga = Saga.combine(
-            oddSaga, OddEvent.class,
-            evenSaga, EvenEvent.class
-    );
+        // Combining two sagas into one saga
+        Saga<? super Event, ? extends Command> saga = Saga.combine(
+                oddSaga, OddEvent.class,
+                evenSaga, EvenEvent.class
+        );
 
-    assertIterableEquals(List.of(addEvenNumberCommand), oddSaga.react().apply(oddNumberAddedEvent).toList());
-    assertIterableEquals(List.of(addOddNumberCommand), evenSaga.react().apply(evenNumberAddedEvent).toList());
+        assertIterableEquals(List.of(addEvenNumberCommand), oddSaga.react().apply(oddNumberAddedEvent).toList());
+        assertIterableEquals(List.of(addOddNumberCommand), evenSaga.react().apply(evenNumberAddedEvent).toList());
 
-    assertIterableEquals(List.of(addEvenNumberCommand), saga.react().apply(oddNumberAddedEvent).toList());
-    assertIterableEquals(List.of(addOddNumberCommand), saga.react().apply(evenNumberAddedEvent).toList());
-  }
+        assertIterableEquals(List.of(addEvenNumberCommand), saga.react().apply(oddNumberAddedEvent).toList());
+        assertIterableEquals(List.of(addOddNumberCommand), saga.react().apply(evenNumberAddedEvent).toList());
+    }
 }
 
  ```

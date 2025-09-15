@@ -1,6 +1,7 @@
 package com.fraktalio.fmodel.application.sagamanager;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Action Publisher Interface
@@ -10,7 +11,15 @@ import java.util.stream.Stream;
 public interface IActionPublisher<A> {
     /**
      * @param actions actions
-     * @return stream of Actions being published
+     * @return list of Actions being published
      */
-    Stream<A> publish(Stream<A> actions);
+    List<A> publish(List<A> actions);
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+
+    default CompletableFuture<List<A>> publishAsync(List<A> actions) {
+        return CompletableFuture.supplyAsync(() -> publish(actions));
+    }
 }

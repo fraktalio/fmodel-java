@@ -3,6 +3,8 @@ package com.fraktalio.fmodel.application.aggregate.eventsourced;
 import com.fraktalio.fmodel.domain.Pair;
 import com.fraktalio.fmodel.domain.decider.IDecider;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -38,7 +40,7 @@ public final class EventSourcedLockingAggregate<C, S, E, V> implements IDecider<
 
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -53,17 +55,17 @@ public final class EventSourcedLockingAggregate<C, S, E, V> implements IDecider<
     }
 
     @Override
-    public Stream<Pair<E, V>> fetchEvents(C command) {
+    public List<Pair<E, V>> fetchEvents(C command) {
         return repository.fetchEvents(command);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider) {
+    public List<Pair<E, V>> save(List<E> events, Function<E, V> versionProvider) {
         return repository.save(events, versionProvider);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, V version) {
+    public List<Pair<E, V>> save(List<E> events, V version) {
         return repository.save(events, version);
     }
 
@@ -78,12 +80,34 @@ public final class EventSourcedLockingAggregate<C, S, E, V> implements IDecider<
      * @param command command to be handled
      * @return new events being stored
      */
-    public Stream<Pair<E, V>> handle(C command) {
-        var events = fetchEvents(command).toList();
+    public List<Pair<E, V>> handle(C command) {
+        var events = fetchEvents(command);
         return save(computeNewEvents(events.stream().map(Pair::first), command), events.stream().map(Pair::second).toList().get(events.size() - 1));
     }
 
-    private Stream<E> computeNewEvents(Stream<E> oldEvents, C command) {
+
+    /**
+     * Handle the command and store/produce new events - async version
+     *
+     * @param command command to be handled
+     * @return new events being stored
+     */
+    public CompletableFuture<List<Pair<E, V>>> handleAsync(C command) {
+        return fetchEventsAsync(command)
+                .thenCompose(events -> {
+                    // Compute new events
+                    List<E> newEvents = computeNewEvents(events.stream().map(Pair::first), command);
+                    // Get last version
+                    V lastVersion = events.stream()
+                            .map(Pair::second)
+                            .toList()
+                            .get(events.size() - 1);
+                    // Call saveAsync with both arguments
+                    return saveAsync(newEvents, lastVersion);
+                });
+    }
+
+    private List<E> computeNewEvents(Stream<E> oldEvents, C command) {
         var currentState = oldEvents.sequential().reduce(initialState().get(), (s, e) -> evolve().apply(s, e), (s, s2) -> s);
         return decide().apply(command, currentState);
     }

@@ -2,6 +2,8 @@ package com.fraktalio.fmodel.application.materializedview;
 
 import com.fraktalio.fmodel.domain.Pair;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Materialized View State Locking repository
  * <br /><br />
@@ -29,4 +31,16 @@ public interface IViewStateLockingRepository<S, E, SV, EI> {
      * @return newly stored state
      */
     S save(S state, EI eventIdentifier, SV currentStateVersion);
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+
+    default CompletableFuture<Pair<S, SV>> fetchStateAsync(E event) {
+        return CompletableFuture.supplyAsync(() -> fetchState(event));
+    }
+
+    default CompletableFuture<S> saveAsync(S state, EI eventIdentifier, SV currentStateVersion) {
+        return CompletableFuture.supplyAsync(() -> save(state, eventIdentifier, currentStateVersion));
+    }
 }

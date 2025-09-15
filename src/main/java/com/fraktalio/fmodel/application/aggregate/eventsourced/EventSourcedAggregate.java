@@ -2,6 +2,8 @@ package com.fraktalio.fmodel.application.aggregate.eventsourced;
 
 import com.fraktalio.fmodel.domain.decider.IDecider;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -30,7 +32,7 @@ public final class EventSourcedAggregate<C, S, E> implements IDecider<C, S, E>, 
 
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -46,12 +48,12 @@ public final class EventSourcedAggregate<C, S, E> implements IDecider<C, S, E>, 
 
 
     @Override
-    public Stream<E> fetchEvents(C command) {
+    public List<E> fetchEvents(C command) {
         return repository.fetchEvents(command);
     }
 
     @Override
-    public Stream<E> save(Stream<E> events) {
+    public List<E> save(List<E> events) {
         return repository.save(events);
     }
 
@@ -61,11 +63,23 @@ public final class EventSourcedAggregate<C, S, E> implements IDecider<C, S, E>, 
      * @param command command to be handled
      * @return new events being stored
      */
-    public Stream<E> handle(C command) {
-        return save(computeNewEvents(fetchEvents(command), command));
+    public List<E> handle(C command) {
+        return save(computeNewEvents(fetchEvents(command).stream(), command));
     }
 
-    private Stream<E> computeNewEvents(Stream<E> oldEvents, C command) {
+    /**
+     * Handle the command and store/produce new events - async version
+     *
+     * @param command command to be handled
+     * @return new events being stored
+     */
+    public CompletableFuture<List<E>> handleAsync(C command) {
+        return fetchEventsAsync(command)
+                .thenApply(events -> computeNewEvents(events.stream(), command))
+                .thenCompose(this::saveAsync);
+    }
+
+    private List<E> computeNewEvents(Stream<E> oldEvents, C command) {
         var currentState = oldEvents.sequential().reduce(initialState().get(), (s, e) -> evolve().apply(s, e), (s, s2) -> s);
         return decide().apply(command, currentState);
     }

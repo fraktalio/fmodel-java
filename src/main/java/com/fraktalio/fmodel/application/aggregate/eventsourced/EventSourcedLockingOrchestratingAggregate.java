@@ -4,6 +4,8 @@ import com.fraktalio.fmodel.domain.Pair;
 import com.fraktalio.fmodel.domain.decider.IDecider;
 import com.fraktalio.fmodel.domain.saga.ISaga;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -42,7 +44,7 @@ public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> impleme
     private final IEventLockingRepository<C, E, V> repository;
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -57,22 +59,22 @@ public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> impleme
     }
 
     @Override
-    public Function<E, Stream<C>> react() {
+    public Function<E, List<C>> react() {
         return saga.react();
     }
 
     @Override
-    public Stream<Pair<E, V>> fetchEvents(C command) {
+    public List<Pair<E, V>> fetchEvents(C command) {
         return repository.fetchEvents(command);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, Function<E, V> versionProvider) {
+    public List<Pair<E, V>> save(List<E> events, Function<E, V> versionProvider) {
         return repository.save(events, versionProvider);
     }
 
     @Override
-    public Stream<Pair<E, V>> save(Stream<E> events, V version) {
+    public List<Pair<E, V>> save(List<E> events, V version) {
         return repository.save(events, version);
     }
 
@@ -87,18 +89,38 @@ public final class EventSourcedLockingOrchestratingAggregate<C, S, E, V> impleme
      * @param command command to be handled
      * @return new events being stored
      */
-    public Stream<Pair<E, V>> handle(C command) {
-        return save(computeNewEvents(fetchEvents(command).map(Pair::first), command), versionProvider());
+    public List<Pair<E, V>> handle(C command) {
+        return save(computeNewEvents(fetchEvents(command).stream().map(Pair::first), command), versionProvider());
     }
 
-    private Stream<E> computeNewEvents(Stream<E> oldEvents, C command) {
+    /**
+     * Handle the command and store/produce new events - async version
+     *
+     * @param command command to be handled
+     * @return new events being stored
+     */
+    public CompletableFuture<List<Pair<E, V>>> handleAsync(C command) {
+        return fetchEventsAsync(command)
+                .thenCompose(events ->
+                        versionProviderAsync()
+                                .thenCompose(versionProvider -> {
+                                    // Compute new events
+                                    List<E> newEvents = computeNewEvents(events.stream().map(Pair::first), command);
+                                    // Call async save with the version provider function
+                                    return saveAsync(newEvents, versionProvider);
+                                })
+                );
+    }
+
+
+    private List<E> computeNewEvents(Stream<E> oldEvents, C command) {
         var currentState = oldEvents.sequential().reduce(initialState().get(), (s, e) -> evolve().apply(s, e), (s, s2) -> s);
-        AtomicReference<Stream<E>> resultingEvents = new AtomicReference<>(decide().apply(command, currentState));
-        resultingEvents.get()
-                .flatMap(it -> react().apply(it))
+        AtomicReference<List<E>> resultingEvents = new AtomicReference<>(decide().apply(command, currentState));
+        resultingEvents.get().stream()
+                .flatMap(it -> react().apply(it).stream())
                 .forEach(c -> {
-                    var newEvents = computeNewEvents(Stream.concat(fetchEvents(c).map(Pair::first), resultingEvents.get()), c);
-                    resultingEvents.set(Stream.concat(resultingEvents.get(), newEvents));
+                    var newEvents = computeNewEvents(Stream.concat(fetchEvents(c).stream().map(Pair::first), resultingEvents.get().stream()), c);
+                    resultingEvents.set(Stream.concat(resultingEvents.get().stream(), newEvents.stream()).toList());
                 });
         return resultingEvents.get();
     }

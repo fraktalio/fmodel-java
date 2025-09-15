@@ -6,7 +6,6 @@ import com.fraktalio.fmodel.domain.example.api.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -28,10 +27,9 @@ class DeciderTest {
 
         Decider<? super OddCommand, OddNumberState, OddEvent> oddDecider = new Decider<>(
                 (c, s) -> switch (c) {
-                    case AddOddNumberCommand cmd -> Stream.of(new OddNumberAddedEvent(s.value() + cmd.value()));
-                    case MultiplyOddNumberCommand cmd ->
-                            Stream.of(new OddNumberMultipliedEvent(s.value() * cmd.value()));
-                    case null -> Stream.empty();
+                    case AddOddNumberCommand cmd -> List.of(new OddNumberAddedEvent(s.value() + cmd.value()));
+                    case MultiplyOddNumberCommand cmd -> List.of(new OddNumberMultipliedEvent(s.value() * cmd.value()));
+                    case null -> List.of();
                 },
                 (s, e) -> switch (e) {
                     case OddNumberAddedEvent evt -> new OddNumberState(evt.value());
@@ -43,10 +41,10 @@ class DeciderTest {
 
         Decider<? super EvenCommand, EvenNumberState, EvenEvent> evenDecider = new Decider<>(
                 (c, s) -> switch (c) {
-                    case AddEvenNumberCommand cmd -> Stream.of(new EvenNumberAddedEvent(s.value() + cmd.value()));
+                    case AddEvenNumberCommand cmd -> List.of(new EvenNumberAddedEvent(s.value() + cmd.value()));
                     case MultiplyEvenNumberCommand cmd ->
-                            Stream.of(new EvenNumberMultipliedEvent(s.value() * cmd.value()));
-                    case null -> Stream.empty();
+                            List.of(new EvenNumberMultipliedEvent(s.value() * cmd.value()));
+                    case null -> List.of();
                 },
                 (s, e) -> switch (e) {
                     case EvenNumberAddedEvent evt -> new EvenNumberState(evt.value());
@@ -71,9 +69,9 @@ class DeciderTest {
                         (p) -> new NumberState(p.first(), p.second())
                 );
 
-        assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState).toList());
-        assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState).toList());
-        assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state).toList());
+        assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState));
+        assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState));
+        assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state));
 
         assertEquals(new OddNumberState(1), oddDecider.evolve().apply(oddState, oddNumberAddedEvent));
         assertEquals(new EvenNumberState(2), evenDecider.evolve().apply(evenState, evenNumberAddedEvent));

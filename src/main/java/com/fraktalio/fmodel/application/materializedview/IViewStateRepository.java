@@ -1,5 +1,7 @@
 package com.fraktalio.fmodel.application.materializedview;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * View State repository interface
  *
@@ -19,4 +21,16 @@ public interface IViewStateRepository<S, E> {
      * @return newly stored State
      */
     S save(S state);
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+
+    default CompletableFuture<S> fetchStateAsync(E event) {
+        return CompletableFuture.supplyAsync(() -> fetchState(event));
+    }
+
+    default CompletableFuture<S> saveAsync(S state) {
+        return CompletableFuture.supplyAsync(() -> save(state));
+    }
 }

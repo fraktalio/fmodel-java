@@ -1,6 +1,8 @@
 package com.fraktalio.fmodel.domain.saga;
 
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
@@ -13,7 +15,7 @@ import static java.util.function.Function.identity;
  * @param <AR>  Action Result / Event
  * @param <A>   Action / Command
  */
-public record Saga<AR, A>(Function<AR, Stream<A>> react) implements ISaga<AR, A> {
+public record Saga<AR, A>(Function<AR, List<A>> react) implements ISaga<AR, A> {
     /**
      * Contra map on the Action-Result/AR parameter
      *
@@ -33,7 +35,7 @@ public record Saga<AR, A>(Function<AR, Stream<A>> react) implements ISaga<AR, A>
      * @return new Saga of type {@code Saga<AR, An>}
      */
     public <An> Saga<AR, An> mapAction(Function<? super A, ? extends An> f) {
-        return new Saga<>((ar) -> react.apply(ar).map(f));
+        return new Saga<>((ar) -> react.apply(ar).stream().map(f).collect(Collectors.toUnmodifiableList()));
     }
 
     /**
@@ -64,7 +66,7 @@ public record Saga<AR, A>(Function<AR, Stream<A>> react) implements ISaga<AR, A>
         var sagaY = y
                 .<AR_SUPER>contraMapActionResult((it) -> safeCast(it, clazzARY))
                 .<A_SUPER>mapAction(identity());
-        return new Saga<>(it -> Stream.concat(sagaX.react.apply(it), sagaY.react.apply(it)));
+        return new Saga<>(it -> Stream.concat(sagaX.react.apply(it).stream(), sagaY.react.apply(it).stream()).toList());
     }
 
     private static <T> T safeCast(Object o, Class<T> clazz) {

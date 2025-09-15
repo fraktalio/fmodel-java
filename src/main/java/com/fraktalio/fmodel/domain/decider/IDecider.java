@@ -1,8 +1,8 @@
 package com.fraktalio.fmodel.domain.decider;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * An Interface for the {@link Decider}
@@ -15,9 +15,9 @@ import java.util.stream.Stream;
  */
 public interface IDecider<C, S, E> {
     /**
-     * A function/lambda that takes command of type C and input state of type S as parameters, and returns/emits the flow of output events {@code Stream<E>}
+     * A function/lambda that takes command of type C and input state of type S as parameters, and returns the list of output events {@code Stream<E>}
      */
-    BiFunction<C, S, Stream<E>> decide();
+    BiFunction<C, S, List<E>> decide();
 
     /**
      * A function/lambda that takes input state of type S and input event of type E as parameters, and returns the output/new state S

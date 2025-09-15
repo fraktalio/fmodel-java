@@ -1,7 +1,7 @@
 package com.fraktalio.fmodel.domain.saga;
 
+import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * An Interface for the {@link Saga}
@@ -10,5 +10,5 @@ import java.util.stream.Stream;
  * @param <A>  Action / Command
  */
 public interface ISaga<AR, A> {
-    Function<AR, Stream<A>> react();
+    Function<AR, List<A>> react();
 }

@@ -3,6 +3,7 @@ package com.fraktalio.fmodel.application.materializedview;
 import com.fraktalio.fmodel.domain.Pair;
 import com.fraktalio.fmodel.domain.view.IView;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -52,6 +53,29 @@ public final class MaterializedLockingView<S, E, SV, EI> implements IView<S, E>,
         var currentState = stateAndVersion.first();
         var currentStateVersion = stateAndVersion.second();
         return save(computeNewState(currentState, event), eventIdentifier, currentStateVersion);
+    }
+
+    /**
+     * Handle the event and store/produce new state - async variant
+     *
+     * @param eventAndIdentifier event to handle
+     * @return newly stored state
+     */
+    public CompletableFuture<S> handleAsync(Pair<E, EI> eventAndIdentifier) {
+        var event = eventAndIdentifier.first();
+        var eventIdentifier = eventAndIdentifier.second();
+
+        return fetchStateAsync(event)
+                .thenCompose(stateAndVersion -> {
+                    S currentState = stateAndVersion.first();
+                    SV currentStateVersion = stateAndVersion.second();
+
+                    // compute new state
+                    S newState = computeNewState(currentState, event);
+
+                    // save async with optimistic locking
+                    return saveAsync(newState, eventIdentifier, currentStateVersion);
+                });
     }
 
     @Override

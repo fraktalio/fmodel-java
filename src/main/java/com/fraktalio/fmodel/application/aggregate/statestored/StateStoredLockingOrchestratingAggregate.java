@@ -4,10 +4,11 @@ import com.fraktalio.fmodel.domain.Pair;
 import com.fraktalio.fmodel.domain.decider.IDecider;
 import com.fraktalio.fmodel.domain.saga.ISaga;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * {@code StateStoredLockingOrchestratingAggregate} implements {@link IDecider}, {@link  ISaga} and {@link IStateLockingRepository} interfaces,
@@ -52,7 +53,7 @@ public final class StateStoredLockingOrchestratingAggregate<C, S, E, V> implemen
     }
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -67,7 +68,7 @@ public final class StateStoredLockingOrchestratingAggregate<C, S, E, V> implemen
     }
 
     @Override
-    public Function<E, Stream<C>> react() {
+    public Function<E, List<C>> react() {
         return saga.react();
     }
 
@@ -82,14 +83,34 @@ public final class StateStoredLockingOrchestratingAggregate<C, S, E, V> implemen
         return save(pairStateVersion.second(), computeNewState(pairStateVersion.first(), command));
     }
 
+    /**
+     * Handle the command and store/produce new state - async variant
+     *
+     * @param command the command to handle
+     * @return the newly stored state (with version)
+     */
+    public CompletableFuture<Pair<S, V>> handleAsync(C command) {
+        return fetchStateAsync(command)
+                .thenCompose(stateWithVersion -> {
+                    S currentState = stateWithVersion.first();
+                    V currentVersion = stateWithVersion.second();
+
+                    // Compute new state
+                    S newState = computeNewState(currentState, command);
+
+                    // Save with optimistic locking
+                    return saveAsync(currentVersion, newState);
+                });
+    }
+
     private S computeNewState(S state, C command) {
         var currentState = state != null ? state : initialState().get();
         var events = decide().apply(command, currentState);
 
-        return events.sequential()
+        return events.stream()
                 .reduce(currentState, (s, e) -> {
                     var evolved = evolve().apply(s, e);
-                    return react().apply(e).sequential()
+                    return react().apply(e).stream()
                             .reduce(evolved, this::computeNewState, (s1, s2) -> s1);
                 }, (s1, s2) -> s1);
     }

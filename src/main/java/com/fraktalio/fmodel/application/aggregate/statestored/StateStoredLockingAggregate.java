@@ -3,9 +3,10 @@ package com.fraktalio.fmodel.application.aggregate.statestored;
 import com.fraktalio.fmodel.domain.Pair;
 import com.fraktalio.fmodel.domain.decider.IDecider;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * {@code StateStoredLockingAggregate} implements {@link IDecider} and {@link IStateLockingRepository} interfaces,
@@ -47,7 +48,7 @@ public final class StateStoredLockingAggregate<C, S, E, V> implements IDecider<C
     }
 
     @Override
-    public BiFunction<C, S, Stream<E>> decide() {
+    public BiFunction<C, S, List<E>> decide() {
         return decider.decide();
     }
 
@@ -72,9 +73,29 @@ public final class StateStoredLockingAggregate<C, S, E, V> implements IDecider<C
         return save(pairStateVersion.second(), computeNewState(pairStateVersion.first(), command));
     }
 
+    /**
+     * Handle the command and store/produce new state - async variant
+     *
+     * @param command the command to handle
+     * @return the newly stored state (with version)
+     */
+    public CompletableFuture<Pair<S, V>> handleAsync(C command) {
+        return fetchStateAsync(command)
+                .thenCompose(stateWithVersion -> {
+                    S currentState = stateWithVersion.first();
+                    V currentVersion = stateWithVersion.second();
+
+                    // Compute new state
+                    S newState = computeNewState(currentState, command);
+
+                    // Save with optimistic locking
+                    return saveAsync(currentVersion, newState);
+                });
+    }
+
     private S computeNewState(S state, C command) {
         var currentState = state != null ? state : initialState().get();
         var events = decide().apply(command, currentState);
-        return events.sequential().reduce(currentState, (s, e) -> evolve().apply(s, e), (s, s2) -> s);
+        return events.stream().reduce(currentState, (s, e) -> evolve().apply(s, e), (s, s2) -> s);
     }
 }

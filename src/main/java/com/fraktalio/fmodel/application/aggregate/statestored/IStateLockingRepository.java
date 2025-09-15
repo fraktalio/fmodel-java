@@ -2,6 +2,8 @@ package com.fraktalio.fmodel.application.aggregate.statestored;
 
 import com.fraktalio.fmodel.domain.Pair;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * State locking repository interface
  * <br /><br />
@@ -28,5 +30,17 @@ public interface IStateLockingRepository<C, S, V> {
      * @return a pair of State and Version for that state that are being stored
      */
     Pair<S, V> save(V currentStateVersion, S newState);
+
+    // --------------------------------------------------------------------
+    // Default async variants
+    // --------------------------------------------------------------------
+
+    default CompletableFuture<Pair<S, V>> fetchStateAsync(C command) {
+        return CompletableFuture.supplyAsync(() -> fetchState(command));
+    }
+
+    default CompletableFuture<Pair<S, V>> saveAsync(V currentStateVersion, S newState) {
+        return CompletableFuture.supplyAsync(() -> save(currentStateVersion, newState));
+    }
 }
 
