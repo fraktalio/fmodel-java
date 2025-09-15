@@ -85,9 +85,13 @@ public final class StateStoredLockingOrchestratingAggregate<C, S, E, V> implemen
     private S computeNewState(S state, C command) {
         var currentState = state != null ? state : initialState().get();
         var events = decide().apply(command, currentState);
-        var newState = events.sequential().reduce(currentState, (s, e) -> evolve().apply(s, e), (s, s2) -> s);
-        events.flatMap(it -> react().apply(it)).forEach(it -> computeNewState(newState, it));
-        return newState;
+
+        return events.sequential()
+                .reduce(currentState, (s, e) -> {
+                    var evolved = evolve().apply(s, e);
+                    return react().apply(e).sequential()
+                            .reduce(evolved, this::computeNewState, (s1, s2) -> s1);
+                }, (s1, s2) -> s1);
     }
 
 }
