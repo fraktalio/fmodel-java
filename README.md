@@ -70,7 +70,9 @@ Notice that `Decider` implements an
 interface [`IDecider`](src/main/java/com/fraktalio/fmodel/domain/decider/IDecider.java) to communicate the contract.
 
 <details>
-  <summary>Example / Test</summary>
+  <summary>Example / Given-When-Then Test</summary>
+
+A fluent [test DSL/builder](src/test/java/com/fraktalio/fmodel/dsl/DeciderDSL.java) to support `Given-When-Then` format
 
 ```java
 class DeciderTest {
@@ -131,17 +133,40 @@ class DeciderTest {
                         (p) -> new NumberState(p.first(), p.second())
                 );
 
-        assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState));
-        assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState));
-        assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state));
 
-        assertEquals(new OddNumberState(1), oddDecider.evolve().apply(oddState, oddNumberAddedEvent));
-        assertEquals(new EvenNumberState(2), evenDecider.evolve().apply(evenState, evenNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolve().apply(state, oddNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolve().apply(state, evenNumberAddedEvent));
+        givenState(oddDecider, oddState)
+                .whenCommand(addOddNumberCommand)
+                .thenState(new OddNumberState(1));
+
+        givenEvents(oddDecider, List.of())
+                .whenCommand(addOddNumberCommand)
+                .thenEvents(List.of(oddNumberAddedEvent));
+
+        // Even decider: given evenState + addEvenNumberCommand -> then evenNumberAddedEvent
+        givenState(evenDecider, evenState)
+                .whenCommand(addEvenNumberCommand)
+                .thenState(new EvenNumberState(2));
+
+        givenEvents(evenDecider, List.of())
+                .whenCommand(addEvenNumberCommand)
+                .thenEvents(List.of(evenNumberAddedEvent));
+
+        // Combined decider: given state + odd command -> events
+        givenEvents(decider, List.of())
+                .whenCommand(addOddNumberCommand)
+                .thenEvents(List.of(oddNumberAddedEvent));
+
+        // Combined decider: given state + odd command -> new state
+        givenState(decider, state)
+                .whenCommand(addOddNumberCommand)
+                .thenState(new NumberState(new EvenNumberState(0), new OddNumberState(1)));
+
+        // Combined decider: given state + even command -> new state
+        givenState(decider, state)
+                .whenCommand(addEvenNumberCommand)
+                .thenState(new NumberState(new EvenNumberState(2), new OddNumberState(0)));
     }
 }
-
 ```
 
 </details>
@@ -175,7 +200,9 @@ Notice that `View` implements an interface [`IView`](src/main/java/com/fraktalio
 communicate the contract.
 
 <details>
-  <summary>Example / Test</summary>
+  <summary>Example / Given-When-Then Test</summary>
+
+A fluent [test DSL/builder](src/test/java/com/fraktalio/fmodel/dsl/ViewDSL.java) to support `Given-When-Then` format
 
 ```java
 class ViewTest {
@@ -183,8 +210,10 @@ class ViewTest {
     void viewTest() {
         var oddNumberAddedEvent = new OddNumberAddedEvent(1);
         var evenNumberAddedEvent = new EvenNumberAddedEvent(2);
+
         var oddState = new OddNumberState(0);
         var evenState = new EvenNumberState(0);
+
         var state = new NumberState(evenState, oddState);
 
         View<OddNumberState, ? super OddEvent> oddView = new View<>(
@@ -206,25 +235,32 @@ class ViewTest {
         );
 
         // Combining two views into one
-        View<Pair<EvenNumberState, OddNumberState>, ? super Event> _decider = View.combine(
+        View<Pair<EvenNumberState, OddNumberState>, ? super Event> _view = View.combine(
                 evenView, EvenEvent.class,
                 oddView, OddEvent.class
         );
         // Combining two views into one, plus mapping inconvenient `Pair` into more domain specific `NumberState`
-        View<NumberState, ? super Event> decider = View
+        View<NumberState, ? super Event> view = View
                 .combine(evenView, EvenEvent.class, oddView, OddEvent.class)
                 .dimapState(
                         (ns) -> new Pair<>(ns.evenNumber(), ns.oddNumber()),
                         (p) -> new NumberState(p.first(), p.second())
                 );
 
-        assertEquals(new OddNumberState(1), oddView.evolveView().apply(oddState, oddNumberAddedEvent));
-        assertEquals(new EvenNumberState(2), evenView.evolveView().apply(evenState, evenNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolveView().apply(state, oddNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolveView().apply(state, evenNumberAddedEvent));
+        // --- DSL usage ---
+        givenEvents(oddView, List.of(oddNumberAddedEvent))
+                .thenState(new OddNumberState(1));
+
+        givenEvents(evenView, List.of(evenNumberAddedEvent))
+                .thenState(new EvenNumberState(2));
+
+        givenEvents(view, List.of(oddNumberAddedEvent))
+                .thenState(new NumberState(new EvenNumberState(0), new OddNumberState(1)));
+
+        givenEvents(view, List.of(evenNumberAddedEvent))
+                .thenState(new NumberState(new EvenNumberState(2), new OddNumberState(0)));
     }
 }
-
 ```
 
 </details>

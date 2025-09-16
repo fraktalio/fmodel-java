@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static com.fraktalio.fmodel.dsl.DeciderDSL.givenEvents;
+import static com.fraktalio.fmodel.dsl.DeciderDSL.givenState;
 
 class DeciderTest {
 
@@ -69,13 +69,37 @@ class DeciderTest {
                         (p) -> new NumberState(p.first(), p.second())
                 );
 
-        assertIterableEquals(List.of(oddNumberAddedEvent), oddDecider.decide().apply(addOddNumberCommand, oddState));
-        assertIterableEquals(List.of(evenNumberAddedEvent), evenDecider.decide().apply(addEvenNumberCommand, evenState));
-        assertIterableEquals(List.of(oddNumberAddedEvent), decider.decide().apply(addOddNumberCommand, state));
 
-        assertEquals(new OddNumberState(1), oddDecider.evolve().apply(oddState, oddNumberAddedEvent));
-        assertEquals(new EvenNumberState(2), evenDecider.evolve().apply(evenState, evenNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(0), new OddNumberState(1)), decider.evolve().apply(state, oddNumberAddedEvent));
-        assertEquals(new NumberState(new EvenNumberState(2), new OddNumberState(0)), decider.evolve().apply(state, evenNumberAddedEvent));
+        givenState(oddDecider, oddState)
+                .whenCommand(addOddNumberCommand)
+                .thenState(new OddNumberState(1));
+
+        givenEvents(oddDecider, List.of())
+                .whenCommand(addOddNumberCommand)
+                .thenEvents(List.of(oddNumberAddedEvent));
+
+        // Even decider: given evenState + addEvenNumberCommand -> then evenNumberAddedEvent
+        givenState(evenDecider, evenState)
+                .whenCommand(addEvenNumberCommand)
+                .thenState(new EvenNumberState(2));
+
+        givenEvents(evenDecider, List.of())
+                .whenCommand(addEvenNumberCommand)
+                .thenEvents(List.of(evenNumberAddedEvent));
+
+        // Combined decider: given state + odd command -> events
+        givenEvents(decider, List.of())
+                .whenCommand(addOddNumberCommand)
+                .thenEvents(List.of(oddNumberAddedEvent));
+
+        // Combined decider: given state + odd command -> new state
+        givenState(decider, state)
+                .whenCommand(addOddNumberCommand)
+                .thenState(new NumberState(new EvenNumberState(0), new OddNumberState(1)));
+
+        // Combined decider: given state + even command -> new state
+        givenState(decider, state)
+                .whenCommand(addEvenNumberCommand)
+                .thenState(new NumberState(new EvenNumberState(2), new OddNumberState(0)));
     }
 }
